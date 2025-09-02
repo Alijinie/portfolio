@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stanley Bagambisa | Motion & Web Futurist</title>
+    <meta name="description" content="Stanley Bagambisa - Crafting Next-Generation Motion Adverts & Immersive Web Experiences.">
+    <meta name="keywords" content="Motion Graphics, Web Development, Front-End Developer, 3D Animation, Interactive Design, Nigeria">
+    <meta name="author" content="Stanley Bagambisa">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" href="Images/Stanley Bagambisa.png" type="image/png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Custom Styles */
+        :root {
+            --cursor-color: #fff;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a0a0a;
+            color: #e5e7eb;
+            cursor: none; /* Hide default cursor */
+        }
+        
+        /* --- Enhanced Preloader --- */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background-color: #0a0a0a;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        #preloader.loaded {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .preloader-logo {
+            width: 80px;
+            height: 80px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* --- Custom Cursor --- */
+        #cursor-dot, #cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            will-change: transform;
+        }
+        #cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--cursor-color);
+        }
+        #cursor-outline {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s ease-out;
+        }
+
+        /* --- 3D Canvas Styling --- */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+        }
+        
+        /* --- Aurora Background Glows --- */
+        .section-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        .section-glow::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(10, 10, 10, 0) 60%);
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        .section-glow.visible::before {
+            opacity: 1;
+        }
+
+        /* --- Scroll Animation & General Styles --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background-color: var(--blue);
+            color: white;
+        }
+        #modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div id="preloader">
+        <img src="Images/Stanley Bagambisa.png" alt="Alijinie Logo" class="preloader-logo">
+    </div>
+
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <div id="canvas-container"></div>
+
+    <header class="fixed top-0 left-0 w-full z-30 transition-all duration-300" id="header">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="font-semibold text-lg text-white" data-cursor-hover>
+                <img src="Images/Stanley Bagambisa.png" alt="Alijinie Logo" class="inline-block w-10 h-10 mr-2">Alijinie
+            </a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#about" class="text-gray-300 hover:text-blue-500 transition-colors" data-cursor-hover>About</a>
+                <a href="#services" class="text-gray-300 hover:text-blue-500 transition-colors" data-cursor-hover>Services</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-blue-500 transition-colors" data-cursor-hover>Portfolio</a>
+                <a href="#contact" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-lg transition-colors magnetic-button">Contact</a>
+            </div>
+            <button class="md:hidden text-white text-2xl" data-cursor-hover>
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="relative z-10">
+
+        <section id="hero" class="h-screen flex items-center justify-center text-center">
+            <div class="px-6">
+                <h1 id="hero-title" class="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-tight">
+                    Stanley Bagambisa
+                </h1>
+                <marquee><p id="hero-subtitle" class="text-xl md:text-2xl mt-4 font-light bg-gradient-to-r from-blue-400 to-purple-600 via-100% text-transparent bg-clip-text">
+                    I Create Motion Adverts & Web Experiences that Captivate.
+                </p></marquee>
+                <a href="#portfolio" class="mt-10 inline-block bg-white text-gray-900 font-bold py-3 px-8 rounded-lg text-lg hover:bg-gray-200 transition-transform transform hover:scale-105 magnetic-button">
+                    View My Work
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="py-24 bg-black bg-opacity-50 backdrop-blur-sm section-glow reveal">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-5 gap-12 items-center">
+                    <div class="md:col-span-2 reveal">
+                        <div class="w-full max-w-sm mx-auto aspect-square bg-gray-800 rounded-lg shadow-2xl p-2">
+                             <img class="w-full h-full object-cover rounded-md" src="Images/524918011_122137028402739191_2965075452319717685_n.jpg" alt="Stanley Bagambisa">
+                        </div>
+                    </div>
+                    <div class="md:col-span-3 reveal">
+                        <h2 class="text-4xl font-bold text-white mb-4">A Journey from Curiosity to Creation</h2>
+                        <p class="text-gray-400 mb-4 text-lg">
+                            My fascination with digital creation began with a Windows 95 Toshiba Satellite. After my dad taught me the basics to keep me from tampering, a lifelong passion was ignited. Today, that curiosity has evolved into a professional skillset. I help small businesses and side-hustlers stand out with compelling motion graphics and polished websites.
+                        </p>
+                        <p class="text-gray-400 mb-6 text-lg">
+                            As a self-taught developer now honing my skills at <span class="text-blue-400 font-semibold">GoMyCode Hackerspace Ikeja</span>, I blend technical precision with creative storytelling. My ability to translate—both linguistically in <span class="font-semibold">French, Swahili, and Arabic</span>, and visually through animation—allows me to connect brands with their audiences in powerful ways.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="py-24">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold text-white mb-2 reveal">What I Offer</h2>
+                <p class="text-lg text-gray-400 mb-12 max-w-2xl mx-auto reveal">Crafting digital assets to elevate your brand and grow your client base.</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 reveal transition-transform transform hover:-translate-y-2">
+                        <i class="fas fa-film text-4xl text-blue-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Motion Adverts</h3>
+                        <p class="text-gray-400">Engaging, short-form video ads for social media and digital campaigns that grab attention and drive action.</p>
+                    </div>
+                    <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 reveal transition-transform transform hover:-translate-y-2" style="transition-delay: 100ms;">
+                        <i class="fas fa-palette text-4xl text-purple-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Animated Flyers</h3>
+                        <p class="text-gray-400">Dynamic, eye-catching flyers that bring your promotions and announcements to life.</p>
+                    </div>
+                    <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 reveal transition-transform transform hover:-translate-y-2" style="transition-delay: 200ms;">
+                        <i class="fas fa-code text-4xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Front-End Development</h3>
+                        <p class="text-gray-400">Modern, responsive websites that provide a seamless user experience and reflect your brand's quality.</p>
+                    </div>
+                    <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 reveal transition-transform transform hover:-translate-y-2" style="transition-delay: 300ms;">
+                        <i class="fas fa-language text-4xl text-amber-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Translation Services</h3>
+                        <p class="text-gray-400">Accurate and culturally-aware translation between English, French, Swahili, and Arabic.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio" class="py-24 bg-black bg-opacity-50 backdrop-blur-sm section-glow reveal">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white mb-2 reveal">My Recent Work</h2>
+                    <p class="text-lg text-gray-400 reveal">A selection of projects that showcase my skills.</p>
+                    <p class="text-xs text-blue-400 mt-1 reveal">*Click any item to view in full screen</p>
+                </div>
+                <div class="flex justify-center space-x-2 md:space-x-4 mb-10 reveal" id="filter-buttons">
+                    <button class="filter-btn active font-semibold py-2 px-5 rounded-lg" data-filter="all" data-cursor-hover>All</button>
+                    <button class="filter-btn font-semibold py-2 px-5 rounded-lg" data-filter="motion" data-cursor-hover>Motion Adverts</button>
+                    <button class="filter-btn font-semibold py-2 px-5 rounded-lg" data-filter="flyer" data-cursor-hover>Brochures</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="portfolio-grid">
+                    
+                    <div class="portfolio-item group reveal cursor-pointer" data-category="motion" data-type="video" data-src="videos/VID-20250808-WA0053.mp4">
+                        <div class="relative overflow-hidden rounded-lg aspect-square">
+                            <video class="w-full h-full object-cover" autoplay loop muted playsinline>
+                                <source src="videos/VID-20250808-WA0053.mp4" type="video/mp4">
+                            </video>
+                            <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-play text-white text-4xl opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item group reveal cursor-pointer" data-category="flyer" data-type="image" data-src="Images/1.png">
+                         <div class="relative overflow-hidden rounded-lg aspect-square">
+                             <img src="Images/1.png" alt="Brochure for client" class="w-full h-full object-cover">
+                              <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
+                                   <i class="fas fa-search-plus text-white text-4xl opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300"></i>
+                             </div>
+                         </div>
+                    </div>
+                    
+                    <div class="portfolio-item group reveal cursor-pointer" data-category="motion" data-type="video" data-src="videos/VID-20250808-WA0052.mp4">
+                        <div class="relative overflow-hidden rounded-lg aspect-square">
+                            <video class="w-full h-full object-cover" autoplay loop muted playsinline>
+                                <source src="videos/VID-20250808-WA0052.mp4" type="video/mp4">
+                            </video>
+                            <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-play text-white text-4xl opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-item group reveal cursor-pointer" data-category="flyer" data-type="image" data-src="Images/2.png">
+                         <div class="relative overflow-hidden rounded-lg aspect-square">
+                             <img src="Images/2.png" alt="Front of client Brochure" class="w-full h-full object-cover">
+                              <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
+                                   <i class="fas fa-search-plus text-white text-4xl opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300"></i>
+                             </div>
+                         </div>
+                    </div>
+                    
+                </div>
+                <div class="flex justify-center items-center gap-4 mt-16">
+                   <a href="https://alijinie.github.io/FARMAPP/" target="_blank" class="text-center text-blue-400 hover:text-blue-300 underline reveal magnetic-button">
+                        VIEW MY WEB DEVELOPMENT PROJECT
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-24">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="text-4xl font-bold text-white mb-2 reveal">Let's Create Together</h2>
+                 <p class="text-lg text-gray-400 mb-12 max-w-2xl mx-auto reveal">Ready to start a project or just want to say hi? Send me a message.</p>
+                 <div class="max-w-2xl mx-auto reveal">
+                       <div class="flex flex-col md:flex-row gap-6 mb-6">
+                           <div class="text-left bg-gray-900 border border-gray-800 p-6 rounded-lg flex-1">
+                                <i class="fas fa-map-marker-alt text-blue-500 text-2xl mb-2"></i>
+                                <h4 class="text-white font-semibold">Location</h4>
+                                <p class="text-gray-400">Ogun State, Nigeria</p>
+                           </div>
+                           <div class="text-left bg-gray-900 border border-gray-800 p-6 rounded-lg flex-1">
+                                <i class="fas fa-envelope text-blue-500 text-2xl mb-2"></i>
+                                <h4 class="text-white font-semibold">Email</h4>
+                                <a href="mailto:sbagambisa@gmail.com" class="text-gray-400 hover:text-blue-400" data-cursor-hover>sbagambisa@gmail.com</a>
+                           </div>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 border-t border-gray-800 py-8">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+             <marquee>© 2025 Stanley Bagambisa for Alijinie. All Rights Reserved.</marquee>
+        </div>
+    </footer>
+    
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-80 z-40 hidden opacity-0"></div>
+    <div id="modal-content" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-11/12 md:w-3/4 lg:w-2/3 max-w-4xl hidden opacity-0 scale-95">
+         <div class="relative bg-gray-900 rounded-lg p-3">
+             <button id="modal-close" class="absolute -top-3 -right-3 text-white bg-gray-800 rounded-full h-8 w-8 flex items-center justify-center hover:bg-red-500 transition-colors" data-cursor-hover>&times;</button>
+             <div id="modal-body" class="aspect-video"></div>
+         </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // --- PRELOADER ---
+            const preloader = document.getElementById('preloader');
+            window.addEventListener('load', () => {
+                preloader.classList.add('loaded');
+            });
+
+            // --- CUSTOM CURSOR ---
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorOutline = document.getElementById('cursor-outline');
+            gsap.set(cursorDot, { xPercent: -50, yPercent: -50 });
+            gsap.set(cursorOutline, { xPercent: -50, yPercent: -50 });
+
+            window.addEventListener('mousemove', e => {
+                gsap.to(cursorDot, { duration: 0.2, x: e.clientX, y: e.clientY });
+                gsap.to(cursorOutline, { duration: 0.6, x: e.clientX, y: e.clientY, ease: "power2.out" });
+            });
+            
+            document.querySelectorAll('[data-cursor-hover], .magnetic-button, .portfolio-item').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    gsap.to(cursorOutline, { duration: 0.3, scale: 1.5, opacity: 0.4 });
+                });
+                el.addEventListener('mouseleave', () => {
+                    gsap.to(cursorOutline, { duration: 0.3, scale: 1, opacity: 1 });
+                });
+            });
+            
+            // --- MAGNETIC BUTTONS ---
+            const magneticButtons = document.querySelectorAll('.magnetic-button');
+            magneticButtons.forEach(button => {
+                button.addEventListener('mousemove', function(e) {
+                    const { offsetX: x, offsetY: y } = e, { offsetWidth: width, offsetHeight: height } = this;
+                    const move = 20;
+                    const xMove = x / width * (move * 2) - move;
+                    const yMove = y / height * (move * 2) - move;
+                    gsap.to(this, { duration: 0.3, x: xMove, y: yMove });
+                });
+                button.addEventListener('mouseleave', function() {
+                    gsap.to(this, { duration: 0.3, x: 0, y: 0 });
+                });
+            });
+
+            // --- HERO TEXT SCRAMBLE EFFECT ---
+            class TextScramble {
+                constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#________'; this.update = this.update.bind(this); }
+                setText(newText) {
+                    const oldText = this.el.innerText;
+                    const length = Math.max(oldText.length, newText.length);
+                    const promise = new Promise((resolve) => this.resolve = resolve);
+                    this.queue = [];
+                    for (let i = 0; i < length; i++) {
+                        const from = oldText[i] || ''; const to = newText[i] || '';
+                        const start = Math.floor(Math.random() * 40); const end = start + Math.floor(Math.random() * 40);
+                        this.queue.push({ from, to, start, end });
+                    }
+                    cancelAnimationFrame(this.frameRequest); this.frame = 0; this.update(); return promise;
+                }
+                update() {
+                    let output = ''; let complete = 0;
+                    for (let i = 0, n = this.queue.length; i < n; i++) {
+                        let { from, to, start, end, char } = this.queue[i];
+                        if (this.frame >= end) { complete++; output += to; } 
+                        else if (this.frame >= start) {
+                            if (!char || Math.random() < 0.28) { char = this.randomChar(); this.queue[i].char = char; }
+                            output += `<span class="opacity-50">${char}</span>`;
+                        } else { output += from; }
+                    }
+                    this.el.innerHTML = output;
+                    if (complete === this.queue.length) { this.resolve(); } 
+                    else { this.frameRequest = requestAnimationFrame(this.update); this.frame++; }
+                }
+                randomChar() { return this.chars[Math.floor(Math.random() * this.chars.length)]; }
+            }
+            const heroTitle = document.getElementById('hero-title');
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            const titleScramble = new TextScramble(heroTitle);
+            const subtitleScramble = new TextScramble(heroSubtitle);
+            setTimeout(() => {
+                titleScramble.setText('Stanley Bagambisa');
+                setTimeout(() => {
+                    subtitleScramble.setText('I Create Motion Adverts & Web Experiences that Captivate.');
+                }, 500);
+            }, 500);
+
+            // --- 3D HERO BACKGROUND (ENHANCED PARTICLE SYSTEM) ---
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            const particlesGeometry = new THREE.BufferGeometry;
+            const count = 5000;
+            const positions = new Float32Array(count * 3);
+            for(let i = 0; i < count * 3; i++){ positions[i] = (Math.random() - 0.5) * 10; }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0x3b82f6,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.8
+            });
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+
+            camera.position.z = 5;
+
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = event.clientX - window.innerWidth / 2;
+                mouseY = event.clientY - window.innerHeight / 2;
+            });
+            
+            const clock = new THREE.Clock();
+            function animate() {
+                const elapsedTime = clock.getElapsedTime();
+                particles.rotation.y = elapsedTime * 0.05;
+                particles.rotation.x = elapsedTime * 0.02;
+                
+                camera.position.x += (mouseX * 0.00005 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 0.00005 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            });
+
+            // --- HEADER BACKGROUND ON SCROLL ---
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('bg-black', window.scrollY > 50);
+                header.classList.toggle('bg-opacity-50', window.scrollY > 50);
+                header.classList.toggle('backdrop-blur-sm', window.scrollY > 50);
+            });
+
+            // --- ON-SCROLL REVEAL ANIMATION ---
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        if (entry.target.classList.contains('section-glow')) {
+                           entry.target.classList.add('visible');
+                        }
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+
+            // --- PORTFOLIO FILTERING ---
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const portfolioItems = document.querySelectorAll('.portfolio-item');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const filter = button.dataset.filter;
+                    portfolioItems.forEach(item => {
+                        gsap.to(item, {
+                            duration: 0.4,
+                            opacity: 0,
+                            scale: 0.9,
+                            onComplete: () => {
+                                item.style.display = 'none';
+                                if (filter === 'all' || item.dataset.category === filter) {
+                                    item.style.display = 'block';
+                                    gsap.to(item, { duration: 0.4, opacity: 1, scale: 1 });
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+
+            // --- PORTFOLIO MODAL ---
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalContent = document.getElementById('modal-content');
+            const modalBody = document.getElementById('modal-body');
+            const modalCloseBtn = document.getElementById('modal-close');
+
+            const openModal = (type, src) => {
+                modalBody.innerHTML = (type === 'video') ?
+                    `<video class="w-full h-full" src="${src}" controls autoplay playsinline></video>` :
+                    `<img class="w-full h-full object-contain" src="${src}" alt="Portfolio piece">`;
+                
+                modalBackdrop.classList.remove('hidden');
+                modalContent.classList.remove('hidden');
+                gsap.to(modalBackdrop, { duration: 0.3, opacity: 1 });
+                gsap.to(modalContent, { duration: 0.3, opacity: 1, scale: 1, delay: 0.1 });
+            };
+
+            const closeModal = () => {
+                gsap.to(modalContent, { duration: 0.3, opacity: 0, scale: 0.95 });
+                gsap.to(modalBackdrop, { 
+                    duration: 0.3, 
+                    opacity: 0, 
+                    delay: 0.1,
+                    onComplete: () => {
+                        modalBackdrop.classList.add('hidden');
+                        modalContent.classList.add('hidden');
+                        modalBody.innerHTML = '';
+                    }
+                });
+            };
+
+            portfolioItems.forEach(item => {
+                item.addEventListener('click', () => openModal(item.dataset.type, item.dataset.src));
+            });
+            modalCloseBtn.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+        });
+    </script>
+</body>
+</html>
